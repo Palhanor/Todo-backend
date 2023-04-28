@@ -1,4 +1,6 @@
 // TODO: Implementar sistema de cache - Redis
+// TODO: Ajustar os retornos de erro pro front {status, data, err}
+// TODO: Fazer mais tratamentos dos dados recebidos (existem, validos, autenticados, formatados...)
 
 const express = require("express");
 const mysql = require("mysql");
@@ -175,7 +177,6 @@ app.put("/user", validarToken, async (req, res) => {
   }
 
   const query = `UPDATE usuarios SET nome = "${nomeFinal}", email = "${emailFinal}", senha = "${senhaFinal}" WHERE id_usuario = ${id_usuario}`;
-
   con.query(query, (err, result) => {
     if (err) throw err;
     res.send({ result: "Dados do usuário alterados com sucesso!" });
@@ -195,18 +196,12 @@ app.delete("/user", validarToken, (req, res) => {
   if (id_usuario !== id_token)
     return res
       .status(401)
-      .send({ resutl: "Um usuário não pode excluir outro" });
+      .send({ result: "Um usuário não pode excluir outro" });
 
-  const queryTarefas = `DELETE FROM tarefas WHERE usuario = ${id_usuario}`;
-  con.query(queryTarefas, (err, result) => {
+  const queryUsuario = `DELETE FROM usuarios WHERE id_usuario = ${id_usuario}`;
+  con.query(queryUsuario, (err, result) => {
     if (err) throw err;
-    else {
-      const queryUsuario = `DELETE FROM usuarios WHERE id_usuario = ${id_usuario}`;
-      con.query(queryUsuario, (err, result) => {
-        if (err) throw err;
-        res.send({ result: "Usuario apagado" });
-      });
-    }
+    res.send({ result: "Usuario apagado" });
   });
 });
 
@@ -280,7 +275,6 @@ app.post("/category", validarToken, (req, res) => {
       .send({ result: "Não é permitido criar categoria sem nome" });
 
   const query = `INSERT INTO categorias (usuario, nome_categoria, cor) VALUES (${id_usuario}, "${nome}", "${cor}")`;
-
   con.query(query, (err, result) => {
     if (err) throw err;
     res.status(201).send({
@@ -299,7 +293,6 @@ app.get("/category", validarToken, (req, res) => {
   );
 
   const query = `SELECT id_categoria, nome_categoria, cor FROM categorias WHERE usuario = ${id_usuario}`;
-
   con.query(query, (err, result) => {
     if (err) throw err;
     return res.status(200).send(result);
@@ -315,7 +308,6 @@ app.put("/category", validarToken, (req, res) => {
       .send({ result: "Não é editar criar categorias com nome vazio" });
 
   const query = `UPDATE categorias SET nome_categoria = "${nome_categoria}", cor = "${cor}" WHERE id_categoria = ${id_categoria}`;
-
   con.query(query, (err, result) => {
     if (err) throw err;
     res.status(201).send({
@@ -326,17 +318,10 @@ app.put("/category", validarToken, (req, res) => {
 
 app.delete("/category", validarToken, (req, res) => {
   const { id_categoria } = req.body;
-
-  const queryTarefas = `UPDATE tarefas SET categoria = null WHERE categoria = ${id_categoria}`;
-  con.query(queryTarefas, (err, result) => {
+  const query = `DELETE FROM categorias WHERE id_categoria = ${id_categoria}`;
+  con.query(query, (err, result) => {
     if (err) throw err;
-    else {
-      const queryCategoria = `DELETE FROM categorias WHERE id_categoria = ${id_categoria}`;
-      con.query(queryCategoria, (err, result) => {
-        if (err) throw err;
-        res.send({ result: "Categoria apagada" });
-      });
-    }
+    res.send({ result: "Categoria apagada" });
   });
 });
 
