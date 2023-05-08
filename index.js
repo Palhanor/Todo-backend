@@ -7,7 +7,6 @@
 // TODO: Criar uma padronização de nomenclaturas e tipos entre backend e frontend
 // TODO: Implementar estrutura HATEOAS (GET user/tasks/1/category)
 // TODO: Adicionar novos campos dentro do banco de dados
-// prioridade TINYINT default 0 => 0 (normal) | 1 (proritária)
 // excluida TINYINT defualt 0 => 0 (ativa) | 1 (exluida)
 // perdida TINYINT default 0 => 0 (corrente) | 1 (perdida)
 // horario CHAR(5) NULL
@@ -219,11 +218,10 @@ app.delete("/user", validarToken, (req, res) => {
 /* TAREFA */
 app.post("/tasks", validarToken, (req, res) => {
   // TODO: Fazer a validacao dos dados de entrada - nome e data
-  const { usuario, titulo, descricao, dataFinal, categoria } = req.body;
-
+  const { usuario, titulo, descricao, dataFinal, categoria, prioridade } = req.body;
   // if (categoria == 0) categoria = null;
 
-  const query = `INSERT INTO tarefas (usuario, titulo, descricao, data_final, categoria) VALUES (${usuario}, "${titulo}", "${descricao}", "${dataFinal}", ${categoria})`;
+  const query = `INSERT INTO tarefas (usuario, titulo, descricao, data_final, categoria, prioridade) VALUES (${usuario}, "${titulo}", "${descricao}", "${dataFinal}", ${categoria}, ${prioridade})`;
   con.query(query, (err, result) => {
     if (err) throw err;
     res.status(201).send({
@@ -236,7 +234,7 @@ app.post("/tasks", validarToken, (req, res) => {
 app.get("/tasks", validarToken, (req, res) => {
   const token = req.headers["x-access-token"];
   const { id_usuario } = jwt.verify(token, process.env.SECRET, (_, d) => d);
-  const query = `SELECT id_tarefa, titulo, data_final, descricao, realizada, categoria FROM tarefas
+  const query = `SELECT id_tarefa, titulo, data_final, descricao, realizada, categoria, prioridade FROM tarefas
     WHERE usuario = ${id_usuario}
     ORDER BY data_final`;
   con.query(query, (err, result) => {
@@ -247,7 +245,7 @@ app.get("/tasks", validarToken, (req, res) => {
 
 app.put("/tasks", validarToken, (req, res) => {
   // TODO: Fazer a validacao dos dados de entrada - nome e data
-  const { id_tarefa, titulo, descricao, data_final, realizada, categoria } =
+  const { id_tarefa, titulo, descricao, data_final, realizada, categoria, prioridade } =
     req.body;
   const realizadaTratada = realizada ? 1 : 0;
   const query = `UPDATE tarefas SET  
@@ -255,7 +253,8 @@ app.put("/tasks", validarToken, (req, res) => {
     descricao = "${descricao}", 
     data_final = "${data_final}", 
     realizada = ${realizadaTratada}, 
-    categoria = ${categoria} 
+    categoria = ${categoria},
+    prioridade = ${prioridade} 
     WHERE id_tarefa = ${id_tarefa}`;
   con.query(query, (err, result) => {
     if (err) throw err;
