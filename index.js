@@ -1,6 +1,17 @@
-// TODO: Implementar sistema de cache - Redis
+// TODO: Implementar sistema de cache - Redis (inserir informações sobre cacheable)
 // TODO: Ajustar os retornos de erro pro front {status, data, err}
 // TODO: Fazer mais tratamentos dos dados recebidos (existem, validos, autenticados, formatados...)
+// TODO: Adicionar campos de criacao (date) e modificacao (date) nas tabelas
+// TODO: Criar novas subrotas dentro do banco de dados (PUT tastk/category)
+// TODO: Modificar o nome da tabela para data_realizaco
+// TODO: Criar uma padronização de nomenclaturas e tipos entre backend e frontend
+// TODO: Implementar estrutura HATEOAS (GET user/tasks/1/category)
+// TODO: Adicionar novos campos dentro do banco de dados
+// prioridade TINYINT default 0 => 0 (normal) | 1 (proritária)
+// excluida TINYINT defualt 0 => 0 (ativa) | 1 (exluida)
+// perdida TINYINT default 0 => 0 (corrente) | 1 (perdida)
+// horario CHAR(5) NULL
+// tentativas INT default 1 ...
 
 const express = require("express");
 const mysql = require("mysql");
@@ -208,8 +219,11 @@ app.delete("/user", validarToken, (req, res) => {
 /* TAREFA */
 app.post("/tasks", validarToken, (req, res) => {
   // TODO: Fazer a validacao dos dados de entrada - nome e data
-  const { usuario, titulo, descricao, dataFinal } = req.body;
-  const query = `INSERT INTO tarefas (usuario, titulo, descricao, data_final) VALUES (${usuario}, "${titulo}", "${descricao}", "${dataFinal}")`;
+  const { usuario, titulo, descricao, dataFinal, categoria } = req.body;
+
+  // if (categoria == 0) categoria = null;
+
+  const query = `INSERT INTO tarefas (usuario, titulo, descricao, data_final, categoria) VALUES (${usuario}, "${titulo}", "${descricao}", "${dataFinal}", ${categoria})`;
   con.query(query, (err, result) => {
     if (err) throw err;
     res.status(201).send({
