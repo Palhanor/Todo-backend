@@ -1,15 +1,19 @@
 // TODO: Implementar sistema de cache - Redis (inserir informações sobre cacheable)
+// TODO: Atualizar os triggers e SP para o CASCADE
 // TODO: Ajustar os retornos de erro pro front {status, data, err}
 // TODO: Fazer mais tratamentos dos dados recebidos (existem, validos, autenticados, formatados...)
 // TODO: Adicionar campos de criacao (date) e modificacao (date) nas tabelas
 // TODO: Criar novas subrotas dentro do banco de dados (PUT tastk/category)
 // TODO: Modificar o nome da tabela para data_realizaco
 // TODO: Criar uma padronização de nomenclaturas e tipos entre backend e frontend
-// TODO: Implementar estrutura HATEOAS (GET user/tasks/1/category)
+// TODO: Implementar estrutura HATEOAS (GET user/tasks/:id/category)
+
 // TODO: Adicionar novos campos dentro do banco de dados
-// excluida TINYINT defualt 0 => 0 (ativa) | 1 (exluida)
+// data_final => prazo_dia DATE NULL
+// prazo_hora TIME NULL
+// realizada DATETIME NULL
 // perdida TINYINT default 0 => 0 (corrente) | 1 (perdida)
-// horario CHAR(5) NULL
+// progresso INT default 0 => 0 (min) | 100 (max)
 // tentativas INT default 1 ...
 
 const express = require("express");
@@ -193,7 +197,7 @@ app.put("/user", validarToken, async (req, res) => {
   });
 });
 
-app.delete("/user", validarToken, (req, res) => {
+app.delete("/user/:id", validarToken, (req, res) => {
   const token = req.headers["x-access-token"];
   const { id_usuario: id_token } = jwt.verify(
     token,
@@ -201,14 +205,16 @@ app.delete("/user", validarToken, (req, res) => {
     (err, decoded) => decoded
   );
 
-  const { id_usuario } = req.body;
+  const { id } = req.params;
+  console.log(id)
+  console.log(id_token)
 
-  if (id_usuario !== id_token)
+  if (id != id_token)
     return res
       .status(401)
       .send({ result: "Um usuário não pode excluir outro" });
 
-  const queryUsuario = `DELETE FROM usuarios WHERE id_usuario = ${id_usuario}`;
+  const queryUsuario = `DELETE FROM usuarios WHERE id_usuario = ${id}`;
   con.query(queryUsuario, (err, result) => {
     if (err) throw err;
     res.send({ result: "Usuario apagado" });
@@ -262,9 +268,9 @@ app.put("/tasks", validarToken, (req, res) => {
   });
 });
 
-app.delete("/tasks", validarToken, (req, res) => {
-  const { id_tarefa } = req.body;
-  const query = `DELETE FROM tarefas WHERE id_tarefa = ${id_tarefa}`;
+app.delete("/tasks/:id", validarToken, (req, res) => {
+  const { id } = req.params;
+  const query = `DELETE FROM tarefas WHERE id_tarefa = ${id}`;
   con.query(query, (err, result) => {
     if (err) throw err;
     res.send({ result: "Atividade excluída!" });
@@ -329,9 +335,9 @@ app.put("/category", validarToken, (req, res) => {
   });
 });
 
-app.delete("/category", validarToken, (req, res) => {
-  const { id_categoria } = req.body;
-  const query = `DELETE FROM categorias WHERE id_categoria = ${id_categoria}`;
+app.delete("/category/:id", validarToken, (req, res) => {
+  const { id } = req.params;
+  const query = `DELETE FROM categorias WHERE id_categoria = ${id}`;
   con.query(query, (err, result) => {
     if (err) throw err;
     res.send({ result: "Categoria apagada" });
